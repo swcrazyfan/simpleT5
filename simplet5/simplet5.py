@@ -353,7 +353,7 @@ class SimpleT5:
             train_df,
             eval_df,
             self.tokenizer,
-            batch_size=batch_size,
+#            batch_size=batch_size,
             source_max_token_len=source_max_token_len,
             target_max_token_len=target_max_token_len,
             num_workers=dataloader_num_workers,
@@ -391,7 +391,7 @@ class SimpleT5:
             callbacks=callbacks,
             max_epochs=max_epochs,
             gpus=gpus,
-            plugins=DeepSpeedPlugin(config="deepspeed_config.json"),
+            plugins=DeepSpeedPlugin(config="ds/deepspeed_config.json"),
             precision=precision,
             log_every_n_steps=1,
         )
