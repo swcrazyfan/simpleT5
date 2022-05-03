@@ -25,10 +25,10 @@ deepspeed_config = {
         "optimizer": {
             "type": "OneBitAdam",
             "params": {
-                "lr": 5e-5,
+                "lr": 1e-4,
                 "betas": [0.998, 0.999],
                 "eps": 1e-5,
-                "weight_decay": 1e-9,
+                "weight_decay": 0.0,
                 "cuda_aware": True,
             },
         },
@@ -37,7 +37,7 @@ deepspeed_config = {
             "params": {
                 "last_batch_iteration": -1,
                 "warmup_min_lr": 0,
-                "warmup_max_lr": 3e-5,
+                "warmup_max_lr": 1e-3,
                 "warmup_num_steps": 100,
             },
         },
@@ -49,7 +49,7 @@ deepspeed_config = {
             "allgather_bucket_size": 2e8,  # Number of elements to all gather at once.
             "reduce_bucket_size": 2e8,  # Number of elements we reduce/allreduce at once.
         },
-        "gradient_accumulation_steps": 4,
+        "gradient_accumulation_steps": True,
         "gradient_checkpointing": True,
     }
 
