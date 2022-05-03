@@ -22,10 +22,13 @@ import deepspeed
 
 deepspeed_config = {
         "zero_allow_untested_optimizer": True,
+        "train_batch_size": 4,
+        "gradient_accumulation_steps": 8,
+        "gradient_checkpointing": True,
         "optimizer": {
             "type": "OneBitAdam",
             "params": {
-                "lr": 1e-4,
+                "lr": 5e-5,
                 "betas": [0.998, 0.999],
                 "eps": 1e-5,
                 "weight_decay": 0.0,
@@ -49,8 +52,6 @@ deepspeed_config = {
             "allgather_bucket_size": 2e8,  # Number of elements to all gather at once.
             "reduce_bucket_size": 2e8,  # Number of elements we reduce/allreduce at once.
         },
-        "gradient_accumulation_steps": True,
-        "gradient_checkpointing": True,
     }
 
 torch.cuda.empty_cache()
