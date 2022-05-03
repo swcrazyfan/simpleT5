@@ -17,6 +17,41 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 from pytorch_lightning.callbacks.progress import TQDMProgressBar
+from pytorch_lightning.plugins import DeepSpeedPlugin
+import deepspeed
+
+deepspeed_config = {
+        "zero_allow_untested_optimizer": True,
+        "optimizer": {
+            "type": "OneBitAdam",
+            "params": {
+                "lr": 5e-5,
+                "betas": [0.998, 0.999],
+                "eps": 1e-5,
+                "weight_decay": 1e-9,
+                "cuda_aware": True,
+            },
+        },
+        "scheduler": {
+            "type": "WarmupLR",
+            "params": {
+                "last_batch_iteration": -1,
+                "warmup_min_lr": 0,
+                "warmup_max_lr": 3e-5,
+                "warmup_num_steps": 100,
+            },
+        },
+        "zero_optimization": {
+            "stage": 2,  # Enable Stage 2 ZeRO (Optimizer/Gradient state partitioning)
+            "cpu_offload": True,  # Enable Offloading optimizer state/calculation to the host CPU
+            "contiguous_gradients": True,  # Reduce gradient fragmentation.
+            "overlap_comm": True,  # Overlap reduce/backward operation of gradients for speed.
+            "allgather_bucket_size": 2e8,  # Number of elements to all gather at once.
+            "reduce_bucket_size": 2e8,  # Number of elements we reduce/allreduce at once.
+        },
+        "gradient_accumulation_steps": 4,
+        "gradient_checkpointing": True,
+    }
 
 torch.cuda.empty_cache()
 pl.seed_everything(42)
@@ -327,6 +362,7 @@ class SimpleT5:
         logger="default",
         dataloader_num_workers: int = 2,
         save_only_last_epoch: bool = False,
+
     ):
         """
         trains T5/MT5 model on custom dataset
@@ -344,6 +380,7 @@ class SimpleT5:
             logger (pytorch_lightning.loggers) : any logger supported by PyTorch Lightning. Defaults to "default". If "default", pytorch lightning default logger is used.
             dataloader_num_workers (int, optional): number of workers in train/test/val dataloader
             save_only_last_epoch (bool, optional): If True, saves only the last epoch else models are saved at every epoch
+
         """
         self.data_module = LightningDataModule(
             train_df,
@@ -387,6 +424,7 @@ class SimpleT5:
             callbacks=callbacks,
             max_epochs=max_epochs,
             gpus=gpus,
+            plugins=DeepSpeedPlugin(deepspeed_config),
             precision=precision,
             log_every_n_steps=1,
         )
